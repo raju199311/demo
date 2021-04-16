@@ -1,0 +1,85 @@
+pipeline {
+  agent any
+  
+  stages {
+     
+	  stage('CleanWorkspace') {
+            steps {
+                cleanWs()
+            }
+        }
+		
+		
+	stage("Code Checkout"){
+            steps {
+                script {
+				
+                    sh "git clone https://github.com/techmartguru/jenkins-pipeline2.git"
+                   
+                    
+                }
+            }
+        }	
+		
+		
+		
+    stage("Build Step"){
+            steps {
+                script {
+				
+                    sh "cd $workspace";
+                    sh "ls -lhrt ";
+                    sh "cd jenkins-pipeline2; ls -lhrt ; mvn -version && mvn clean install ";
+                   
+                    
+                }
+            }
+        }
+    stage("Sonar analysis"){
+            steps {
+                script {
+				
+                    sh "cd $workspace";
+                    sh "ls -lhrt ";
+                    sh "cd jenkins-pipeline2; ls -lhrt ; mvn -B clean package -X -DskipTests && mvn -e -B sonar:sonar -Dsonar.host.url=http://35.171.24.223:9002 -Dsonar.login=sonaradmin -Dsonar.password=sonaradmin -Dsonar.scm.disabled=true -X ";
+                   
+                    
+                }
+            }
+        }		
+	 stage(" Build Image"){
+            steps {
+                script {
+				
+                    sh "cd $workspace/jenkins-pipeline2 && docker build -t java:v1.0 .";
+                      
+                }
+            }
+        }
+     
+	 	 stage(" Deploy Image"){
+            steps {
+                script {
+
+					sh "docker run -dit -p 8082:8082 java:v1.0"
+                      
+                }
+            }
+        }
+		
+	stage(" verify Deployment"){
+            steps {
+                script {
+
+					sh "docker ps "
+                      
+                }
+            }
+        }
+  
+  
+  
+  }
+
+}
+ 
